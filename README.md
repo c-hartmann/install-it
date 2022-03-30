@@ -110,16 +110,31 @@ wget \
 ln -sf install.sh uninstall.sh
 
 # 8 - create archive containing files to be installed on target system
-tar --directory="$BASE_INSTALL_DIR" --create --verbose --gzip \
+tar \
+  --create --verbose --gzip \
+  --directory="$BASE_INSTALL_DIR" \
   --file "$INSTALL_UPDATE_TAR_GZ" \
   --files-from=$PACKAGE.files
 
 # 9 - create archive to distribute to store.kde.org
-tar --create --verbose --gzip \
+tar \
+  --create --verbose --gzip \
   --file $PACKAGE_TAR_GZ \
   ./install.sh ./uninstall.sh \
   ./$INSTALL_UPDATE_TAR_GZ
 ```
+
+### (or) with the friendly help of make(1)
+
+```
+# 1-6 as above
+
+# 7
+wget \
+  "https://raw.githubusercontent.com/c-hartmann/kde-install.sh/main/Makefile"
+make PACKAGE=hello-world
+```
+
 
 ### Installation (in principal)
 
