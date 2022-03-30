@@ -58,12 +58,14 @@ $ BASE_INSTALL_DIR="$base_dir_user"
 
 ```
 # creating the archive with
-$ tar --directory="$BASE_INSTALL_DIR" --create --verbose --gzip --file install-update.tar.gz <files ...>
+$ tar --directory="$BASE_INSTALL_DIR" --create --verbose --gzip \
+  --file install-update.tar.gz <files ...>
 ```
 
 ```
 # or (reading a files list from a file)
-$ tar --directory="$BASE_INSTALL_DIR" --create --verbose --gzip --file install-update.tar.gz --files-from=<files-to-install-seen-from-BASE_INSTALL_DIR-list>
+$ tar --directory="$BASE_INSTALL_DIR" --create --verbose --gzip \
+  --file install-update.tar.gz --files-from=<files-to-install-seen-from-BASE_INSTALL_DIR-list>
 ```
 
 
@@ -94,7 +96,8 @@ BASE_INSTALL_DIR="$HOME/.local"
 cd "$BASE_INSTALL_DIR"
 
 # 5 - having `hello-world.desktop` and `hello-world.sh` in `ServiceMenus/` ...
-find ./share/kservices5/ServiceMenus/ -name 'hello-world.*' > $BUILD_DIR/$PACKAGE.files
+find ./share/kservices5/ServiceMenus/ -name 'hello-world.*' \
+  > $BUILD_DIR/$PACKAGE.files
 
 # 6 - switch to build dir now
 cd "$BUILD_DIR"
@@ -102,14 +105,20 @@ cd "$BUILD_DIR"
 # 7 - and get install file from github or elsewhere
 test -f install.sh && rm install.sh
 test -f uninstall.sh && rm uninstall.sh
-wget "https://raw.githubusercontent.com/c-hartmann/kde-install.sh/main/install.sh"
+wget \
+  "https://raw.githubusercontent.com/c-hartmann/kde-install.sh/main/install.sh"
 ln -sf install.sh uninstall.sh
 
 # 8 - create archive containing files to be installed on target system
-tar --directory="$BASE_INSTALL_DIR" --create --verbose --gzip --files-from=$PACKAGE.files --file "$INSTALL_UPDATE_TAR_GZ"
+tar --directory="$BASE_INSTALL_DIR" --create --verbose --gzip \
+  --file "$INSTALL_UPDATE_TAR_GZ" \
+  --files-from=$PACKAGE.files
 
 # 9 - create archive to distribute to store.kde.org
-tar --create --verbose --gzip install.sh uninstall.sh $INSTALL_UPDATE_TAR_GZ --file $PACKAGE_TAR_GZ
+tar --create --verbose --gzip \
+  --file $PACKAGE_TAR_GZ \
+  ./install.sh ./uninstall.sh \
+  ./$INSTALL_UPDATE_TAR_GZ
 ```
 
 ### Installation (in principal)
