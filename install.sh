@@ -197,7 +197,8 @@ _main ()
 		;;
 		remove)
 			_tf="$(mktemp)"
-			_remove 2>"$_tf" || _error_exit 'oops... something went wrong with deinstallation'
+ 			_remove || _error_exit 'oops... something went wrong with deinstallation'
+# 			_remove 2>"$_tf" || _error_exit 'oops... something went wrong with deinstallation'
 			### source extras if present
 			# shellcheck disable=SC1090
 			if [[ -f "$MY_UN_INSTALL_EXTRAS" ]]; then
