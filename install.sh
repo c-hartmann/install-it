@@ -153,7 +153,7 @@ _remove ()
 		printf '%s\n' 'Files to remove:' <&2
 		while read -r _target; do
 			_target="$BASE_INSTALL_DIR/${_target#./}"
-			printf 'removing: %s\n' "$_target"
+			printf 'removing: %s\n' "$_target" >&2
 			test -f "$_target" &&    rm "$_target"
 			test -d "$_target" && rmdir "$_target"
 			### tac allows me to delete files before their containing directories
@@ -196,7 +196,8 @@ _main ()
 			_notify "installed"
 		;;
 		remove)
-			_remove || _error_exit 'oops... something went wrong with deinstallation'
+			_tf="$(mktemp)"
+			_remove 2>"$_tf" || _error_exit 'oops... something went wrong with deinstallation'
 			### source extras if present
 			# shellcheck disable=SC1090
 			if [[ -f "$MY_UN_INSTALL_EXTRAS" ]]; then
