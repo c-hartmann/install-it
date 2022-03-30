@@ -49,66 +49,86 @@ install.sh shall be an agnostic installer for KDE extensions. it makes use of:
 ### Components
 
 ```
-### install base dir is either system wide or personaly
-base_dir_root="/usr"          # this is risky business
-base_dir_user="$HOME/.local"  # outbreaks from here with install-extras.sh only
-BASE_INSTALL_DIR="$base_dir_user"
+# install base dir is either system wide or personaly...
+$ base_dir_root="/usr"          # this is risky business
+$ base_dir_user="$HOME/.local"  # outbreaks from here with install-extras.sh only
+$ BASE_INSTALL_DIR="$base_dir_user"
 ```
 
 
-s```
+```
 # creating the archive with
 $ tar --directory="$BASE_INSTALL_DIR" --create --verbose --gzip --file install-update.tar.gz <files ...>
 ```
+
 ```
 # or (reading a files list from a file)
 $ tar --directory="$BASE_INSTALL_DIR" --create --verbose --gzip --file install-update.tar.gz --files-from=<files-to-install-seen-from-BASE_INSTALL_DIR-list>
 ```
 
-```
-# e.g.
-$ tar --directory="$BASE_INSTALL_DIR" --create --verbose --gzip --file install-update.tar.gz ./local/share/kservices5/ServiceMenus/hello-world/
-```
+
+### a real world scenario
+
+with having `hello-world.desktop` and `hello-world.sh `
+
+in `./local/share/kservices5/ServiceMenus/` ...
+
+### Commands...
+
 
 ```
-# or
-$ cd "$BASE_INSTALL_DIR" ; tar --create --verbose --gzip --file install-update.tar.gz ./local/share/kservices5/ServiceMenus/hello-world/
-```
+# 1 - define a package name (do not use spaces here)
+PACKAGE='hello-world'
 
-```
-### archives used herein
+# 2 - archives used herein
+INSTALL_UPDATE_TAR_GZ="install-update.tar.gz"
+INSTALL_PROTECT_TAR_GZ="install-protect.tar.gz"
+PACKAGE_TAR_GZ="$PACKAGE.tar.gz"
 
-MY_INSTALL_UPDATE_TAR_GZ="install-update.tar.gz"
-MY_INSTALL_PROTECT_TAR_GZ="install-protect.tar.gz"
-```
+# 3 - just to keep things separated we create and use a "build" directory
+BUILD_DIR="$HOME/.local/kde-store-build"
+test -d "$BUILD_DIR" || mkdir "$BUILD_DIR"
 
-```
-# a real world scenario (with having hello-world.desktop and hello-world.sh in ./local/share/kservices5/ServiceMenus/ ...
-
-PACKAGE=hello-world
-
-base_dir_user="$HOME/.local"
-BASE_INSTALL_DIR="$base_dir_user"
+# 4 - from here we go...
+BASE_INSTALL_DIR="$HOME/.local"
 cd "$BASE_INSTALL_DIR"
 
-MY_BUILD_DIR="./kde-store-build"
-test -d "$MY_BUILD_DIR" || mkdir "$MY_BUILD_DIR"
+# 5 - having `hello-world.desktop` and `hello-world.sh` in `ServiceMenus/` ...
+find ./share/kservices5/ServiceMenus/ -name 'hello-world.*' > $BUILD_DIR/$PACKAGE.files
 
-find ./share/kservices5/ServiceMenus/$PACKAGE* > $MY_BUILD_DIR/$PACKAGE.files
-cd $MY_BUILD_DIR
-wget https://github.com/c-hartmann/kde-install.sh/../raw/../install.sh
+# 6 - switch to build dir now
+cd "$BUILD_DIR"
 
-tar --directory="$BASE_INSTALL_DIR" --create --verbose --gzip --file $MY_INSTALL_UPDATE_TAR_GZ --files-from=$PACKAGE.files
-tar --create --verbose --gzip --file install.sh $PACKAGE.tar.gz $MY_INSTALL_UPDATE_TAR_GZ
+# 7 - and get install file from github or elsewhere
+test -f install.sh && rm install.sh
+test -f uninstall.sh && rm uninstall.sh
+wget "https://raw.githubusercontent.com/c-hartmann/kde-install.sh/main/install.sh"
+
+# 8 - create archive containing files to be installed on target system
+tar --directory="$BASE_INSTALL_DIR" --create --verbose --gzip --files-from=$PACKAGE.files --file "$INSTALL_UPDATE_TAR_GZ"
+
+# 9 - create archive to distribute to store.kde.org
+tar --create --verbose --gzip install.sh $INSTALL_UPDATE_TAR_GZ --file $PACKAGE_TAR_GZ
 ```
 
-```
-# installing files boiles down to (whereever we live in):
-$ tar --directory="$BASE_INSTALL_DIR" --extract --verbose --file $MY_INSTALL_UPDATE_TAR_GZ
-```
+### Installation (in principal)
+
+this is in principal what (f.i.) dolphon does on installation
+
 
 ```
-### things that can't be accomplished via an archive, go into the extra script
-MY_EXTRAS="install-extras.sh"
-```
+# working directory is...
+SERVICE_MENU_DOWNLOAD_DIR="$HOME/.local/share/servicemenu-download/"
+test -d $SERVICE_MENU_DOWNLOAD_DIR || mkdir $SERVICE_MENU_DOWNLOAD_DIR
+cd $SERVICE_MENU_DOWNLOAD_DIR
 
+# getting the install from store.kde.org (probably unsufficient)
+wget https://www.pling.com/dl?file_name=hello-world.tar.gz
+
+# create and use a directory to extract archive, run install.sh
+mkdir hello-world.tar.gz-dir
+cd hello-world.tar.gz-dir
+tar --extract --verbose --file ../hello-world.tar.gz
+chmod +x install.sh # may be this?
+source install.sh
+```

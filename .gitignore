@@ -1,3 +1,8 @@
 *~
 .directory
 *.kate-swp
+install-protect.in
+install-protect.tar.gz
+install-update.in
+install-update.tar.gz
+

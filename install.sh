@@ -16,7 +16,8 @@ MY_INSTALL_UPDATE_TAR_GZ="install-update.tar.gz"
 MY_INSTALL_PROTECT_TAR_GZ="install-protect.tar.gz"
 
 ### things that can't be accomplished via an archive, go into the extra script
-MY_INSTALL_XTRAS="install-extras.sh"
+MY_INSTALL_EXTRAS="install-extras.sh"
+MY_UN_INSTALL_EXTRAS="uninstall-extras.sh"
 
 ### cosmetic sugar
 MY_TITEL="Dolphin User Service Menu Installer"
@@ -79,7 +80,7 @@ _init_run_mode ()
 
 ### _init_base_install_dir EUID
 ### set base install dir to system wide if we run as root
-_init_base_install_dir
+_init_base_install_dir ()
 {
 	_euid=$1
 	[[ $_euid -eq 0 ]] && BASE_INSTALL_DIR="$base_dir_root"
@@ -109,9 +110,10 @@ _error_exit ()
 _install_or_update ()
 {
 	### extract archive if present
-	if [[ -f ./$MY_INSTALL_UPDATE_TAR_GZ ]]; then
+	if [[ -f $MY_INSTALL_UPDATE_TAR_GZ ]]; then
 		# shellcheck disable=SC2086
-		tar --directory="$HOME" --extract --verbose --file ./$MY_INSTALL_UPDATE_TAR_GZ
+		tar --directory="$BASE_INSTALL_DIR" --extract --verbose --file $MY_INSTALL_UPDATE_TAR_GZ
+		return 0
 	else
 		return 1
 	fi
@@ -171,14 +173,19 @@ _main ()
 			_install_or_protect
 			### source extras if present
 			# shellcheck disable=SC1090
-			if [[ -f "$MY_INSTALL_XTRAS" ]]; then
-				. "$MY_INSTALL_XTRAS"
+			if [[ -f "$MY_INSTALL_EXTRAS" ]]; then
+				. "$MY_INSTALL_EXTRAS"
 			fi
 			# some motivating feedback
 			_notify "$MY_TITEL installed"
 		;;
 		remove)
 			_remove || _error_exit 'oops... something went wrong with deinstallation'
+			### source extras if present
+			# shellcheck disable=SC1090
+			if [[ -f "$MY_UN_INSTALL_EXTRAS" ]]; then
+				. "$MY_UN_INSTALL_EXTRAS"
+			fi
 			_notify "$MY_TITEL removed"
 		;;
 		*)
