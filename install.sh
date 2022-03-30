@@ -151,14 +151,14 @@ _install_or_protect ()
 ### remove all base files but protect user modified. remove only empty directories
 _remove ()
 {
-	#echo running in: $SCRIPT_DIR >&2
-	#echo reading from: $SCRIPT_DIR/$MY_INSTALL_UPDATE_TAR_GZ >&2
+	echo running in: $SCRIPT_DIR #>&2
+	echo reading from: $SCRIPT_DIR/$MY_INSTALL_UPDATE_TAR_GZ #>&2
 	# shellcheck disable=SC2086 disable=SC2162
 	if [[ -f "$SCRIPT_DIR/$MY_INSTALL_UPDATE_TAR_GZ" ]]; then
-		#printf '%s\n' 'files to remove:...' >&2
+		printf '%s\n' 'files to remove:...' #>&2
 		while read _target; do
 			_target="$BASE_INSTALL_DIR/${_target#./}"
-			#printf 'removing: %s\n' "$_target" >&2
+			printf 'removing: %s\n' "$_target" #>&2
 			test -f "$_target" && rm "$_target"
 			test -d "$_target" && rmdir "$_target"
 			### tac allows me to delete files before their containing directories
@@ -190,7 +190,7 @@ _main ()
 	case $_cmd in
 		install)
 			### files that are installed or updated
-			_install_or_update || _error_exit 'oops... no installation archive found' 1
+			_install_or_update # || _error_exit 'oops... no installation archive found' 1
 			### files to install but NOT to update
 			_install_or_protect
 			### source extras if present
@@ -203,8 +203,8 @@ _main ()
 		;;
 		remove)
 			_tf="$(mktemp)"
- 			_remove || _error_exit 'oops... something went wrong with deinstallation' 2
-# 			_remove 2>"$_tf" || _error_exit 'oops... something went wrong with deinstallation'
+ 			_remove >$_tf # || _error_exit 'oops... something went wrong with deinstallation' 2
+# 			_remove 2>"$_tf" || _error_exit 'oops... something went wrong with deinstallation' 2
 			### source extras if present
 			# shellcheck disable=SC1090
 			if [[ -f "$MY_UN_INSTALL_EXTRAS" ]]; then
