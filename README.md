@@ -1,8 +1,8 @@
-# intall.sh
+# install.sh
 
 a hopefully usefull and mostly generic installer for KDE extensions
 
-## THIS...
+## This...
 
 shall do the job if used via Dolphin Settings / Configure Dolphin and(!)
 if downloaded to some place.
