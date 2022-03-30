@@ -55,7 +55,10 @@ _init_cmd ()
 	if [[ $# -gt 0 ]]; then
 		if [[ $1 =~ --remove|--delete|--uninstall|--deinstall ]]; then
 			printf '%s' 'remove'
-			return
+			return 0
+		elif [[ $1 =~ --install ]]; then
+			printf '%s' 'install'
+			return 0
 		fi
 	### beside the option to call this as install[.sh] "--remove" we might operate
 	### below false flag as [un|de]install[.sh] (f.i. existing as a symbolic link)
@@ -118,6 +121,7 @@ _install_or_update ()
 {
 	### extract archive if present
 	if [[ -f $MY_INSTALL_UPDATE_TAR_GZ ]]; then
+		printf '%s\n' 'Files to install or update:' <&2
 		# shellcheck disable=SC2086
 		tar --directory="$BASE_INSTALL_DIR" --extract --verbose --file $MY_INSTALL_UPDATE_TAR_GZ
 		return 0
@@ -133,9 +137,10 @@ _install_or_protect ()
 {
 	### extract archive if present (write files if not present)
 	# shellcheck disable=SC2086
-	if [[ -f ./$MY_INSTALL_PROTECT_TAR_GZ ]]; then
+	if [[ -f $MY_INSTALL_PROTECT_TAR_GZ ]]; then
+		printf '%s\n' 'Files to install or protect:' <&2
 		# shellcheck disable=SC2086
-		tar --directory=$HOME --extract --skip-old-files --verbose --file ./$MY_INSTALL_PROTECT_TAR_GZ
+		tar --directory=$HOME --extract --skip-old-files --verbose --file $MY_INSTALL_PROTECT_TAR_GZ
 	fi
 }
 
@@ -144,12 +149,16 @@ _install_or_protect ()
 _remove ()
 {
 	# shellcheck disable=SC2086 disable=SC2162
-	if [[ -f ./$MY_INSTALL_UPDATE_TAR_GZ ]]; then
+	if [[ -f $MY_INSTALL_UPDATE_TAR_GZ ]]; then
+		printf '%s\n' 'Files to remove:' <&2
 		while read -r _target; do
+			_target="$BASE_INSTALL_DIR/${_target#./}"
 			printf 'removing: %s\n' "$_target"
-			test -f "$_target" && rm "$_target"
+			test -f "$_target" &&    rm "$_target"
 			test -d "$_target" && rmdir "$_target"
-		done < <(tar tf ./$MY_INSTALL_UPDATE_TAR_GZ | tac)
+			### tac allows me to delete files before their containing directories
+		done < <(tar tf $MY_INSTALL_UPDATE_TAR_GZ | tac)
+		return 0
 	else
 		return 1
 	fi
@@ -184,7 +193,7 @@ _main ()
 				. "$MY_INSTALL_EXTRAS"
 			fi
 			# some motivating feedback
-			_notify "$MY_TITEL installed"
+			_notify "installed"
 		;;
 		remove)
 			_remove || _error_exit 'oops... something went wrong with deinstallation'
@@ -193,7 +202,7 @@ _main ()
 			if [[ -f "$MY_UN_INSTALL_EXTRAS" ]]; then
 				. "$MY_UN_INSTALL_EXTRAS"
 			fi
-			_notify "$MY_TITEL removed"
+			_notify "removed"
 		;;
 		*)
 			_error_exit 'oops... something went totaly wrong (unsupported command argument)'

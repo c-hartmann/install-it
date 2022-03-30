@@ -103,12 +103,13 @@ cd "$BUILD_DIR"
 test -f install.sh && rm install.sh
 test -f uninstall.sh && rm uninstall.sh
 wget "https://raw.githubusercontent.com/c-hartmann/kde-install.sh/main/install.sh"
+ln -sf install.sh uninstall.sh
 
 # 8 - create archive containing files to be installed on target system
 tar --directory="$BASE_INSTALL_DIR" --create --verbose --gzip --files-from=$PACKAGE.files --file "$INSTALL_UPDATE_TAR_GZ"
 
 # 9 - create archive to distribute to store.kde.org
-tar --create --verbose --gzip install.sh $INSTALL_UPDATE_TAR_GZ --file $PACKAGE_TAR_GZ
+tar --create --verbose --gzip install.sh uninstall.sh $INSTALL_UPDATE_TAR_GZ --file $PACKAGE_TAR_GZ
 ```
 
 ### Installation (in principal)
