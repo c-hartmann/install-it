@@ -1,8 +1,15 @@
 #! /usr/bin/env bash
 
-### a hopefully usefull and mostly generic installer for KDE extensions
+# install.sh
 
-# TODO get *correct* do-not-overwrite tar option
+### a hopefully usefull and mostly generic
+### installer script for KDE extensions
+
+### for more info on this please see:
+### https://github.com/c-hartmann/kde-install.sh
+
+### usage: install [--remove]
+
 
 # shellcheck disable=SC2034
 ME="install.sh"
