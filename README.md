@@ -147,8 +147,8 @@ SERVICE_MENU_DOWNLOAD_DIR="$HOME/.local/share/servicemenu-download/"
 test -d $SERVICE_MENU_DOWNLOAD_DIR || mkdir $SERVICE_MENU_DOWNLOAD_DIR
 cd $SERVICE_MENU_DOWNLOAD_DIR
 
-# getting the install from store.kde.org (probably unsufficient)
-wget https://www.pling.com/dl?file_name=hello-world.tar.gz
+# getting the install from store.kde.org (unsufficient! > 404)
+wget https://www.pling.com/dl?...file_name=hello-world.tar.gz -O hello-world.tar.gz
 
 # create and use a directory to extract archive, run install.sh
 mkdir hello-world.tar.gz-dir
