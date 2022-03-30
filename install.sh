@@ -18,6 +18,9 @@ MY_PATH="${BASH_SOURCE[0]}"
 MY_FILE="${MY_PATH##*/}"
 MY_NAME="${MY_FILE%%.*}"
 
+### where we live (also required to find install tar archive on uninstall)
+SCRIPT_DIR="$(dirname "$(readlink -m "$0")")"
+
 ### archives used herein
 MY_INSTALL_UPDATE_TAR_GZ="install-update.tar.gz"
 MY_INSTALL_PROTECT_TAR_GZ="install-protect.tar.gz"
@@ -148,16 +151,19 @@ _install_or_protect ()
 ### remove all base files but protect user modified. remove only empty directories
 _remove ()
 {
+	#echo running in: $SCRIPT_DIR >&2
+    #echo reading from: $SCRIPT_DIR/$MY_INSTALL_UPDATE_TAR_GZ >&2
 	# shellcheck disable=SC2086 disable=SC2162
-	if [[ -f $MY_INSTALL_UPDATE_TAR_GZ ]]; then
-		printf '%s\n' 'Files to remove:' >&2
-		while read -r _target; do
+	if [[ -f "$SCRIPT_DIR/$MY_INSTALL_UPDATE_TAR_GZ" ]]; then
+		#printf '%s\n' 'files to remove:...' >&2
+		while read _target; do
 			_target="$BASE_INSTALL_DIR/${_target#./}"
-			printf 'removing: %s\n' "$_target" >&2
-			test -f "$_target" &&    rm "$_target"
+			#printf 'removing: %s\n' "$_target" >&2
+			test -f "$_target" && rm "$_target"
 			test -d "$_target" && rmdir "$_target"
 			### tac allows me to delete files before their containing directories
-		done < <(tar tf $MY_INSTALL_UPDATE_TAR_GZ | tac)
+		done < <(tar tf "$SCRIPT_DIR/$MY_INSTALL_UPDATE_TAR_GZ" | tac)
+		sleep 1
 		return 0
 	else
 		return 1
@@ -193,7 +199,7 @@ _main ()
 				. "$MY_INSTALL_EXTRAS"
 			fi
 			# some motivating feedback
-			_notify "installed"
+			#_notify "installed"
 		;;
 		remove)
 			_tf="$(mktemp)"
@@ -204,7 +210,7 @@ _main ()
 			if [[ -f "$MY_UN_INSTALL_EXTRAS" ]]; then
 				. "$MY_UN_INSTALL_EXTRAS"
 			fi
-			_notify "removed"
+			#_notify "removed"
 		;;
 		*)
 			_error_exit 'oops... something went totaly wrong (unsupported command argument)' 3
