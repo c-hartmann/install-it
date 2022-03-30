@@ -152,7 +152,7 @@ _install_or_protect ()
 _remove ()
 {
 	#echo running in: $SCRIPT_DIR >&2
-    #echo reading from: $SCRIPT_DIR/$MY_INSTALL_UPDATE_TAR_GZ >&2
+	#echo reading from: $SCRIPT_DIR/$MY_INSTALL_UPDATE_TAR_GZ >&2
 	# shellcheck disable=SC2086 disable=SC2162
 	if [[ -f "$SCRIPT_DIR/$MY_INSTALL_UPDATE_TAR_GZ" ]]; then
 		#printf '%s\n' 'files to remove:...' >&2
