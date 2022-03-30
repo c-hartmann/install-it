@@ -138,7 +138,7 @@ make PACKAGE=hello-world
 
 ### Installation (in principal)
 
-this is in principal what (f.i.) dolphon does on installation
+this is in principal what (f.i.) dolphin does on installation
 
 
 ```
