@@ -150,7 +150,7 @@ _remove ()
 {
 	# shellcheck disable=SC2086 disable=SC2162
 	if [[ -f $MY_INSTALL_UPDATE_TAR_GZ ]]; then
-		printf '%s\n' 'Files to remove:' <&2
+		printf '%s\n' 'Files to remove:' >&2
 		while read -r _target; do
 			_target="$BASE_INSTALL_DIR/${_target#./}"
 			printf 'removing: %s\n' "$_target" >&2
@@ -184,7 +184,7 @@ _main ()
 	case $_cmd in
 		install)
 			### files that are installed or updated
-			_install_or_update || _error_exit 'oops... no installation archive found'
+			_install_or_update || _error_exit 'oops... no installation archive found' 1
 			### files to install but NOT to update
 			_install_or_protect
 			### source extras if present
@@ -197,7 +197,7 @@ _main ()
 		;;
 		remove)
 			_tf="$(mktemp)"
- 			_remove || _error_exit 'oops... something went wrong with deinstallation'
+ 			_remove || _error_exit 'oops... something went wrong with deinstallation' 2
 # 			_remove 2>"$_tf" || _error_exit 'oops... something went wrong with deinstallation'
 			### source extras if present
 			# shellcheck disable=SC1090
@@ -207,7 +207,7 @@ _main ()
 			_notify "removed"
 		;;
 		*)
-			_error_exit 'oops... something went totaly wrong (unsupported command argument)'
+			_error_exit 'oops... something went totaly wrong (unsupported command argument)' 3
 		;;
 	esac
 }
