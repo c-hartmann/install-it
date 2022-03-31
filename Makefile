@@ -37,10 +37,11 @@ endif
 #	ln -sf $< $@
 # 	ln -sf install.sh uninstall.sh
 
-# REMOVED: servicemenuinstaller do not fail on hardlinks
-uninstall.sh: install.sh
-	ln -f $< $@
-# 	ln -sf install.sh uninstall.sh
+# servicemenuinstaller do not fail on hardlinks
+# removed anyway, as this is considered to be not transparent to users
+# uninstall.sh: install.sh
+#	ln -f $< $@
+# 	ln -f install.sh uninstall.sh
 
 install.sh:
 	wget -q "https://raw.githubusercontent.com/c-hartmann/kde-install.sh/main/install.sh"
