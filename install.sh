@@ -22,8 +22,8 @@ MY_NAME="${MY_FILE%%.*}"
 SCRIPT_DIR="$(dirname "$(readlink -m "$0")")"
 
 ### archives used herein
-MY_INSTALL_UPDATE_TAR_GZ="install-update.tar.gz"
-MY_INSTALL_PROTECT_TAR_GZ="install-protect.tar.gz"
+MY_INSTALL_UPDATE_TAR_GZ="$SCRIPT_DIR/install-update.tar.gz"
+MY_INSTALL_PROTECT_TAR_GZ="$SCRIPT_DIR/install-protect.tar.gz"
 
 ### things that can't be accomplished via an archive, go into the extra script
 MY_INSTALL_EXTRAS="install-extras.sh"
@@ -113,7 +113,7 @@ _error_exit ()
 {
 	local error_str="$1"
 	$gui && kdialog --error "$error_str: $*" --ok-label "So Sad"
-	$cli && printf "\n%s: %s\n\n" "$error_str" "$1" >&2
+	$cli && printf "\n%s: %s\n\n" "$error_str" "$1"
 	# shellcheck disable=SC2086
 	exit ${2:-1}
 }
@@ -122,11 +122,16 @@ _error_exit ()
 ### install or update all base files but protect user modified. remove only empty directories
 _install_or_update ()
 {
+	echo running in: "$SCRIPT_DIR" >&2
 	### extract archive if present
-	if [[ -f $MY_INSTALL_UPDATE_TAR_GZ ]]; then
-		printf '%s\n' 'Files to install or update:' <&2
+	if [[ -f "$MY_INSTALL_UPDATE_TAR_GZ" ]]; then
+		printf '%s\n' 'Files to install or update:' >&2
 		# shellcheck disable=SC2086
-		tar --directory="$BASE_INSTALL_DIR" --extract --verbose --file $MY_INSTALL_UPDATE_TAR_GZ
+		tar \
+			--directory="$BASE_INSTALL_DIR" \
+			--extract \
+			--verbose \
+			--file "$MY_INSTALL_UPDATE_TAR_GZ" >&2
 		return 0
 	else
 		return 1
@@ -138,12 +143,18 @@ _install_or_update ()
 ### TODO get correct do-not-overwrite tar option
 _install_or_protect ()
 {
+	printf '%s\n' "running in: $SCRIPT_DIR" >&2
 	### extract archive if present (write files if not present)
 	# shellcheck disable=SC2086
-	if [[ -f $MY_INSTALL_PROTECT_TAR_GZ ]]; then
-		printf '%s\n' 'Files to install or protect:' <&2
+	if [[ -f "$MY_INSTALL_PROTECT_TAR_GZ" ]]; then
+		printf '%s\n' 'Files to install or protect:' >&2
 		# shellcheck disable=SC2086
-		tar --directory=$HOME --extract --skip-old-files --verbose --file $MY_INSTALL_PROTECT_TAR_GZ
+		tar \
+			--directory="$HOME" \
+			--extract \
+			--skip-old-files \
+			--verbose \
+			--file "$MY_INSTALL_PROTECT_TAR_GZ" >&2
 	fi
 }
 
@@ -151,14 +162,14 @@ _install_or_protect ()
 ### remove all base files but protect user modified. remove only empty directories
 _remove ()
 {
-	echo running in: $SCRIPT_DIR #>&2
-	echo reading from: $SCRIPT_DIR/$MY_INSTALL_UPDATE_TAR_GZ #>&2
+	printf '%s\n' "running in: $SCRIPT_DIR" >&2
+	printf '%s\n' "reading from: $SCRIPT_DIR/$MY_INSTALL_UPDATE_TAR_GZ" >&2
 	# shellcheck disable=SC2086 disable=SC2162
 	if [[ -f "$SCRIPT_DIR/$MY_INSTALL_UPDATE_TAR_GZ" ]]; then
-		printf '%s\n' 'files to remove:...' #>&2
+		printf '%s\n' 'files to remove:...' >&2
 		while read _target; do
 			_target="$BASE_INSTALL_DIR/${_target#./}"
-			printf 'removing: %s\n' "$_target" #>&2
+			printf 'removing: %s\n' "$_target" >&2
 			test -f "$_target" && rm "$_target"
 			test -d "$_target" && rmdir "$_target"
 			### tac allows me to delete files before their containing directories
@@ -186,13 +197,16 @@ _main ()
 	declare -l _cmd
 	_cmd=$(_init_cmd "$@")
 
+	# a "log" file
+	_tf="$(mktemp)"
+
 	# choose actions by command effective
 	case $_cmd in
 		install)
 			### files that are installed or updated
-			_install_or_update # || _error_exit 'oops... no installation archive found' 1
+			_install_or_update 2>"$_tf" # || _error_exit 'oops... no installation archive found' 1
 			### files to install but NOT to update
-			_install_or_protect
+			_install_or_protect 2>"$_tf"
 			### source extras if present
 			# shellcheck disable=SC1090
 			if [[ -f "$MY_INSTALL_EXTRAS" ]]; then
@@ -202,9 +216,7 @@ _main ()
 			#_notify "installed"
 		;;
 		remove)
-			_tf="$(mktemp)"
- 			_remove >$_tf # || _error_exit 'oops... something went wrong with deinstallation' 2
-# 			_remove 2>"$_tf" || _error_exit 'oops... something went wrong with deinstallation' 2
+ 			_remove 2>"$_tf" || _error_exit 'oops... something went wrong with deinstallation' 2
 			### source extras if present
 			# shellcheck disable=SC1090
 			if [[ -f "$MY_UN_INSTALL_EXTRAS" ]]; then

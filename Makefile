@@ -27,12 +27,19 @@ else
 	--create --verbose --gzip \
 	--directory=${HOME}/.local \
 	--file install-update.tar.gz \
-	--files-from=$<
+ 	--files-from=$<
+# 	--files-from=$<
 # 	--files-from=hello-world.files
 endif
 
+# REMOVED: servicemenuinstaller fails on symlinks
+# uninstall.sh: install.sh
+#	ln -sf $< $@
+# 	ln -sf install.sh uninstall.sh
+
+# REMOVED: servicemenuinstaller do not fail on hardlinks
 uninstall.sh: install.sh
-	ln -sf $< $@
+	ln -f $< $@
 # 	ln -sf install.sh uninstall.sh
 
 install.sh:

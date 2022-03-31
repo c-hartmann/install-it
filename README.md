@@ -95,19 +95,39 @@ test -d "$BUILD_DIR" || mkdir "$BUILD_DIR"
 BASE_INSTALL_DIR="$HOME/.local"
 cd "$BASE_INSTALL_DIR"
 
-# 5 - having `hello-world.desktop` and `hello-world.sh` in `ServiceMenus/` ...
+# 5 - having `hello-world.desktop` and `hello-world.sh`
+#     in `kservices5/ServiceMenus/` (or in upstream `kio/servicemenus/`) ...
 find ./share/kservices5/ServiceMenus/ -name 'hello-world.*' \
   > $BUILD_DIR/$PACKAGE.files
 
 # 6 - switch to build dir now
 cd "$BUILD_DIR"
 
-# 7 - and get install file from github or elsewhere
+# 7 (a) - and get install file from github or elsewhere
 test -f install.sh && rm install.sh
 test -f uninstall.sh && rm uninstall.sh
 wget \
   "https://raw.githubusercontent.com/c-hartmann/kde-install.sh/main/install.sh"
-ln -sf install.sh uninstall.sh
+
+# 7 (b) create a symlink for the uninstall script
+#      (needs further investigation:
+#       in tests it seems, that dolphin (i.e. /usr/bin/servicemenuinstaller)
+#       fails on symlinks, but not on "real" files). (hard links work)
+#      if uninstall.sh is not present at all, servicemenuinstaller
+#      will try install.sh --uninstall to the rescue.
+#      see the source:
+#      https://github.com/KDE/dolphin/blob/master/src/settings/contextmenu/\
+#         servicemenuinstaller/servicemenuinstaller.cpp  (~ line 382, 390)
+#      if uninstall.sh exists as a symlink to install.sh, uninstall.sh is not
+#      being run, instead install.sh *without* arguments is started.
+#      without any knowledge of cpp, it seems to boil down to the usage of
+#      QFileInfo::canonicalFilePath() in the source. QFileInfo::absoluteFilePath()
+#      instead likely would return the name of the symlink itself.
+#      test it yourself with:
+#      /usr/bin/servicemenuinstaller install <path to hello-world.tar.gz>
+#      /usr/bin/servicemenuinstaller uninstall <path to hello-world.tar.gz>
+# ln -sf install.sh uninstall.sh
+ln -f install.sh uninstall.sh # or copy :)
 
 # 8 - create archive containing files to be installed on target system
 tar \
