@@ -233,8 +233,8 @@ _main ()
 	esac
 
 	# wait on user or timeout (if we run in konsole)
-	if which konsole >/dev/null; then
-
+	# shellcheck disable=SC2230
+ 	if type -p  konsole >/dev/null; then
 		_secs=10
 
 		# how to read (savely) the grand parent process id (i.e. of konsole)?
@@ -245,12 +245,13 @@ _main ()
 
 		PID_ME=$$
 		PID_bash=$PPID
+		# shellcheck disable=SC2009
 		PID_konsole="$(ps -ejH | grep -B5 "^\ *$PID_ME" | grep 'konsole' | awk '{ print $1 }')"
 
 		# just a tiny separator
 		printf '\n'
 
-		read -t $_secs -p "close this window or wait $_secs seconds or press 'Enter'"
+		read -r -t $_secs -p "close this window or wait $_secs seconds or press 'Enter'"
 
 		# something with dbus konsole trigger close...
 		# org.kde.konsole-16112 (name)
@@ -260,6 +261,7 @@ _main ()
 		qdbus "org.kde.konsole-$PID_konsole" "/konsole/MainWindow_1" "org.qtproject.Qt.QWidget.hide"
 
 		# also nice enough 'konsole' exits with 0 then)
+		# shellcheck disable=SC2086
 		kill --signal SIGQUIT $PID_konsole # SIGQUIT exits pp nicely
 
 		# noop DOES the job as well !?!?!
