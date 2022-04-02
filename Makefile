@@ -4,8 +4,8 @@
 
 # commented lines for documentation purpose only
 
-$(PACKAGE).tar.gz: install.sh uninstall.sh install-update.tar.gz
-# hello-world.tar.gz: install.sh uninstall.sh install-update.tar.gz
+$(PACKAGE).tar.gz: install.sh install-update.tar.gz
+# hello-world.tar.gz: install.sh install-update.tar.gz
 ifndef PACKAGE
 	$(error PACKAGE is undefined)
 else

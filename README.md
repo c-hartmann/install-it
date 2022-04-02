@@ -127,8 +127,8 @@ wget \
 #      /usr/bin/servicemenuinstaller install <path to hello-world.tar.gz>
 #      /usr/bin/servicemenuinstaller uninstall <path to hello-world.tar.gz>
 #
-# ln -sf install.sh uninstall.sh    # not functuional due to description above
-# ln -f install.sh uninstall.sh     # functional but considered to be "hidden"
+# ln -sf install.sh uninstall.sh    # not functional due to description above
+# ln -f install.sh uninstall.sh     # functional but considered to be not transparent
 
 # 8 - create archive containing files to be installed on target system
 tar \
