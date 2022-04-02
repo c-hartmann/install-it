@@ -122,18 +122,19 @@ _error_exit ()
 ### install or update all base files but protect user modified. remove only empty directories
 _install_or_update ()
 {
-	echo running in: "$SCRIPT_DIR" >&2
+	echo running in: "$SCRIPT_DIR"
 	### extract archive if present
 	if [[ -f "$MY_INSTALL_UPDATE_TAR_GZ" ]]; then
-		printf '%s\n' 'Files to install or update:' >&2
+		printf '%s\n' 'Files to install or update:'
 		# shellcheck disable=SC2086
 		tar \
 			--directory="$BASE_INSTALL_DIR" \
 			--extract \
 			--verbose \
-			--file "$MY_INSTALL_UPDATE_TAR_GZ" >&2
+			--file "$MY_INSTALL_UPDATE_TAR_GZ"
 		return 0
 	else
+		# install archive missing
 		return 1
 	fi
 }
@@ -143,18 +144,22 @@ _install_or_update ()
 ### TODO get correct do-not-overwrite tar option
 _install_or_protect ()
 {
-	printf '%s\n' "running in: $SCRIPT_DIR" >&2
+	printf '%s\n' "running in: $SCRIPT_DIR"
 	### extract archive if present (write files if not present)
 	# shellcheck disable=SC2086
 	if [[ -f "$MY_INSTALL_PROTECT_TAR_GZ" ]]; then
-		printf '%s\n' 'Files to install or protect:' >&2
+		printf '%s\n' 'Files to install or protect:'
 		# shellcheck disable=SC2086
 		tar \
 			--directory="$HOME" \
 			--extract \
 			--skip-old-files \
 			--verbose \
-			--file "$MY_INSTALL_PROTECT_TAR_GZ" >&2
+			--file "$MY_INSTALL_PROTECT_TAR_GZ"
+		return 0
+	else
+		# install archive missing
+		return 1
 	fi
 }
 
@@ -162,21 +167,21 @@ _install_or_protect ()
 ### remove all base files but protect user modified. remove only empty directories
 _remove ()
 {
-	printf '%s\n' "running in: $SCRIPT_DIR" >&2
-	printf '%s\n' "reading from: $SCRIPT_DIR/$MY_INSTALL_UPDATE_TAR_GZ" >&2
+	printf '%s\n' "running in: $SCRIPT_DIR"
+	printf '%s\n' "reading from: $MY_INSTALL_UPDATE_TAR_GZ"
 	# shellcheck disable=SC2086 disable=SC2162
-	if [[ -f "$SCRIPT_DIR/$MY_INSTALL_UPDATE_TAR_GZ" ]]; then
-		printf '%s\n' 'files to remove:...' >&2
+	if [[ -f "$MY_INSTALL_UPDATE_TAR_GZ" ]]; then
+		printf '%s\n' 'files to remove:...'
 		while read _target; do
 			_target="$BASE_INSTALL_DIR/${_target#./}"
-			printf 'removing: %s\n' "$_target" >&2
+			printf 'removing: %s\n' "$_target"
 			test -f "$_target" && rm "$_target"
 			test -d "$_target" && rmdir "$_target"
 			### tac allows me to delete files before their containing directories
-		done < <(tar tf "$SCRIPT_DIR/$MY_INSTALL_UPDATE_TAR_GZ" | tac)
-		sleep 1
+		done < <(tar tf "$MY_INSTALL_UPDATE_TAR_GZ" | tac)
 		return 0
 	else
+		# install archive missing
 		return 1
 	fi
 }
@@ -204,30 +209,63 @@ _main ()
 	case $_cmd in
 		install)
 			### files that are installed or updated
-			_install_or_update 2>"$_tf" # || _error_exit 'oops... no installation archive found' 1
+			_install_or_update || _error_exit "oops... no installation archive found" 1
 			### files to install but NOT to update
-			_install_or_protect 2>"$_tf"
+			_install_or_protect
 			### source extras if present
 			# shellcheck disable=SC1090
 			if [[ -f "$MY_INSTALL_EXTRAS" ]]; then
 				. "$MY_INSTALL_EXTRAS"
 			fi
-			# some motivating feedback
-			#_notify "installed"
 		;;
 		remove)
- 			_remove 2>"$_tf" || _error_exit 'oops... something went wrong with deinstallation' 2
+ 			_remove || _error_exit "oops... something went wrong with deinstallation" 2
 			### source extras if present
 			# shellcheck disable=SC1090
 			if [[ -f "$MY_UN_INSTALL_EXTRAS" ]]; then
 				. "$MY_UN_INSTALL_EXTRAS"
 			fi
-			#_notify "removed"
+			sleep 1
 		;;
 		*)
-			_error_exit 'oops... something went totaly wrong (unsupported command argument)' 3
+			_error_exit "oops... something went totaly wrong (unsupported command argument: $_cmd)" 3
 		;;
 	esac
+
+	# wait on user or timeout (if we run in konsole)
+	if which konsole >/dev/null; then
+
+		_secs=10
+
+		# how to read (savely) the grand parent process id (i.e. of konsole)?
+		# ps -q $PPID -o comm= # >> bash   --tty ttylist # ttyS1
+		# ps -ejH | grep -B5 "^\ *$PID" | head -6 # we look for line 1 .. is this save?
+		# this might be not save enough
+		# but extracting 'konsole' from a process tree(!) .. should be!
+
+		PID_ME=$$
+		PID_bash=$PPID
+		PID_konsole="$(ps -ejH | grep -B5 "^\ *$PID_ME" | grep 'konsole' | awk '{ print $1 }')"
+
+		# just a tiny separator
+		printf '\n'
+
+		read -t $_secs -p "close this window or wait $_secs seconds or press 'Enter'"
+
+		# something with dbus konsole trigger close...
+		# org.kde.konsole-16112 (name)
+		# /konsole/MainWindow_1 (path)
+		# org.qtproject.Qt.QWidget (interface)
+		# hide ()
+		qdbus "org.kde.konsole-$PID_konsole" "/konsole/MainWindow_1" "org.qtproject.Qt.QWidget.hide"
+
+		# also nice enough 'konsole' exits with 0 then)
+		kill --signal SIGQUIT $PID_konsole # SIGQUIT exits pp nicely
+
+		# noop DOES the job as well !?!?!
+		:
+
+	fi
 }
 
 _main "$@"
