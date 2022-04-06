@@ -119,13 +119,16 @@ _error_exit ()
 }
 
 ### _install_or_update -
-### install or update all base files but protect user modified. remove only empty directories
+### install or update all base files. remove only empty directories
 _install_or_update ()
 {
-	echo running in: "$SCRIPT_DIR"
 	### extract archive if present
 	if [[ -f "$MY_INSTALL_UPDATE_TAR_GZ" ]]; then
 		printf '%s\n' 'Files to install or update:'
+		tar \
+			--test \
+			--verbose \
+			--file "$MY_INSTALL_UPDATE_TAR_GZ"
 		# shellcheck disable=SC2086
 		tar \
 			--directory="$BASE_INSTALL_DIR" \
@@ -144,11 +147,14 @@ _install_or_update ()
 ### TODO get correct do-not-overwrite tar option
 _install_or_protect ()
 {
-	printf '%s\n' "running in: $SCRIPT_DIR"
 	### extract archive if present (write files if not present)
 	# shellcheck disable=SC2086
 	if [[ -f "$MY_INSTALL_PROTECT_TAR_GZ" ]]; then
 		printf '%s\n' 'Files to install or protect:'
+		tar \
+			--test \
+			--verbose \
+			--file "$MY_INSTALL_PROTECT_TAR_GZ"
 		# shellcheck disable=SC2086
 		tar \
 			--directory="$HOME" \
@@ -167,11 +173,14 @@ _install_or_protect ()
 ### remove all base files but protect user modified. remove only empty directories
 _remove ()
 {
-	printf '%s\n' "running in: $SCRIPT_DIR"
 	printf '%s\n' "reading from: $MY_INSTALL_UPDATE_TAR_GZ"
 	# shellcheck disable=SC2086 disable=SC2162
 	if [[ -f "$MY_INSTALL_UPDATE_TAR_GZ" ]]; then
 		printf '%s\n' 'files to remove:...'
+# 		tar \
+# 			--test \
+# 			--verbose \
+# 			--file "$MY_INSTALL_UPDATE_TAR_GZ"
 		while read _target; do
 			_target="$BASE_INSTALL_DIR/${_target#./}"
 			printf 'removing: %s\n' "$_target"
@@ -184,6 +193,16 @@ _remove ()
 		# install archive missing
 		return 1
 	fi
+}
+
+_run_command ()
+{
+	:
+}
+
+_make_use_of_konsole ()
+{
+	:
 }
 
 ### _main "$@"
@@ -205,6 +224,9 @@ _main ()
 	# a "log" file
 	_tf="$(mktemp)"
 
+	# let user know where we are running
+	printf '%s\n' "running in: $SCRIPT_DIR"
+
 	# choose actions by command effective
 	case $_cmd in
 		install)
@@ -225,49 +247,58 @@ _main ()
 			if [[ -f "$MY_UN_INSTALL_EXTRAS" ]]; then
 				. "$MY_UN_INSTALL_EXTRAS"
 			fi
-			sleep 1
 		;;
 		*)
 			_error_exit "oops... something went totaly wrong (unsupported command argument: $_cmd)" 3
 		;;
 	esac
 
-	# wait on user or timeout (if we run in konsole)
-	# shellcheck disable=SC2230
- 	if type -p  konsole >/dev/null; then
-		_secs=10
+# 	if [[ -t $stdin ]]; then
+	if $cli; then
+		# wait on user or timeout (if we run in konsole)
+		# shellcheck disable=SC2230
+		if type -p konsole >/dev/null; then
 
-		# how to read (savely) the grand parent process id (i.e. of konsole)?
-		# ps -q $PPID -o comm= # >> bash   --tty ttylist # ttyS1
-		# ps -ejH | grep -B5 "^\ *$PID" | head -6 # we look for line 1 .. is this save?
-		# this might be not save enough
-		# but extracting 'konsole' from a process tree(!) .. should be!
+			# konsole must not be longer open than some seconds
+			_secs=10
 
-		PID_ME=$$
-		PID_bash=$PPID
-		# shellcheck disable=SC2009
-		PID_konsole="$(ps -ejH | grep -B5 "^\ *$PID_ME" | grep 'konsole' | awk '{ print $1 }')"
+			# how to read (savely) the grand parent process id (i.e. of konsole)?
+			# ps -q $PPID -o comm= # >> bash   --tty ttylist # ttyS1
+			# ps -ejH | grep -B5 "^\ *$PID" | head -6 # we look for line 1 .. is this save?
+			# this might be not save enough
+			# but extracting 'konsole' from a process tree(!) .. should be!
 
-		# just a tiny separator
-		printf '\n'
+			PID_ME=$$
+			PID_bash=$PPID
+			# shellcheck disable=SC2009
+			PID_konsole="$(ps -ejH | grep -B5 "^\ *$PID_ME" | grep 'konsole' | awk '{ print $1 }')"
 
-		read -r -t $_secs -p "close this window or wait $_secs seconds or press 'Enter'"
+			# wait only if we grapped the konsole nicely
+			if [[ -n $PID_konsole ]]; then
 
-		# something with dbus konsole trigger close...
-		# org.kde.konsole-16112 (name)
-		# /konsole/MainWindow_1 (path)
-		# org.qtproject.Qt.QWidget (interface)
-		# hide ()
-		qdbus "org.kde.konsole-$PID_konsole" "/konsole/MainWindow_1" "org.qtproject.Qt.QWidget.hide"
+				# just a tiny separator
+				printf '\n'
 
-		# also nice enough 'konsole' exits with 0 then)
-		# shellcheck disable=SC2086
-		kill --signal SIGQUIT $PID_konsole # SIGQUIT exits pp nicely
+				read -r -t $_secs -p "close this window or wait $_secs seconds or press 'Enter'"
 
-		# noop DOES the job as well !?!?!
-		:
+				# something with dbus konsole trigger close...
+				# org.kde.konsole-16112 (name)
+				# /konsole/MainWindow_1 (path)
+				# org.qtproject.Qt.QWidget (interface)
+				# hide ()
+				qdbus "org.kde.konsole-$PID_konsole" "/konsole/MainWindow_1" "org.qtproject.Qt.QWidget.hide"
 
+				# also nice enough 'konsole' exits with 0 then)
+				# shellcheck disable=SC2086
+				kill --signal SIGQUIT $PID_konsole # SIGQUIT exits pp nicely
+
+			fi
+			# noop DOES the job as well !?!?!
+			:
+		fi
 	fi
 }
 
 _main "$@"
+
+# TODO add usage?
