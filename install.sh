@@ -55,19 +55,19 @@ _init_cmd ()
 	### this defaults to install. so uninstal/remove must be triggered
 	### explicitly. either by the name of this command (might exitst as
 	### a symlink), or by command option
-	if [[ $# -gt 0 ]]; then
-		if [[ $1 =~ --remove|--delete|--uninstall|--deinstall ]]; then
+	if [[ $# -gt 0 ]] ; then
+		if [[ $1 =~ --remove|--delete|--uninstall|--deinstall ]] ; then
 			printf '%s' 'remove'
 			return 0
-		elif [[ $1 =~ --install ]]; then
+		elif [[ $1 =~ --install ]] ; then
 			printf '%s' 'install'
 			return 0
 		fi
 	### beside the option to call this as install[.sh] "--remove" we might operate
 	### below false flag as [un|de]install[.sh] (f.i. existing as a symbolic link)
-	elif [[ "${MY_NAME}" =~ ^uninstall.* ]]; then
+	elif [[ "${MY_NAME}" =~ ^uninstall.* ]] ; then
 		printf '%s' 'remove'
-	elif [[ "${MY_NAME}" =~ ^deinstall.* ]]; then
+	elif [[ "${MY_NAME}" =~ ^deinstall.* ]] ; then
 		printf '%s' 'remove'
 	### otherwiese assume install mode
 	else
@@ -80,7 +80,7 @@ _init_cmd ()
 _init_run_mode ()
 {
 	local fd=$1
-	if [[ ! -t $fd ]]; then
+	if [[ ! -t $fd ]] ; then
 		# running via service menu
 		gui=true
 		cli=false
@@ -123,7 +123,7 @@ _error_exit ()
 _install_or_update ()
 {
 	### extract archive if present
-	if [[ -f "$MY_INSTALL_UPDATE_TAR_GZ" ]]; then
+	if [[ -f "$MY_INSTALL_UPDATE_TAR_GZ" ]] ; then
 		printf '%s\n' 'Files to install or update:'
 		tar \
 			--test \
@@ -149,7 +149,7 @@ _install_or_protect ()
 {
 	### extract archive if present (write files if not present)
 	# shellcheck disable=SC2086
-	if [[ -f "$MY_INSTALL_PROTECT_TAR_GZ" ]]; then
+	if [[ -f "$MY_INSTALL_PROTECT_TAR_GZ" ]] ; then
 		printf '%s\n' 'Files to install or protect:'
 		tar \
 			--test \
@@ -175,13 +175,13 @@ _remove ()
 {
 	printf '%s\n' "reading from: $MY_INSTALL_UPDATE_TAR_GZ"
 	# shellcheck disable=SC2086 disable=SC2162
-	if [[ -f "$MY_INSTALL_UPDATE_TAR_GZ" ]]; then
+	if [[ -f "$MY_INSTALL_UPDATE_TAR_GZ" ]] ; then
 		printf '%s\n' 'files to remove:...'
 # 		tar \
 # 			--test \
 # 			--verbose \
 # 			--file "$MY_INSTALL_UPDATE_TAR_GZ"
-		while read _target; do
+		while read _target ; do
 			_target="$BASE_INSTALL_DIR/${_target#./}"
 			printf 'removing: %s\n' "$_target"
 			test -f "$_target" && rm "$_target"
@@ -224,7 +224,7 @@ _main ()
 	# a "log" file
 	_tf="$(mktemp)"
 
-	# let user know where we are running
+	# give user some hints if we fail for ever reason
 	printf '%s\n' "running in: $SCRIPT_DIR"
 
 	# choose actions by command effective
@@ -236,7 +236,7 @@ _main ()
 			_install_or_protect
 			### source extras if present
 			# shellcheck disable=SC1090
-			if [[ -f "$MY_INSTALL_EXTRAS" ]]; then
+			if [[ -f "$MY_INSTALL_EXTRAS" ]] ; then
 				. "$MY_INSTALL_EXTRAS"
 			fi
 		;;
@@ -244,7 +244,7 @@ _main ()
  			_remove || _error_exit "oops... something went wrong with deinstallation" 2
 			### source extras if present
 			# shellcheck disable=SC1090
-			if [[ -f "$MY_UN_INSTALL_EXTRAS" ]]; then
+			if [[ -f "$MY_UN_INSTALL_EXTRAS" ]] ; then
 				. "$MY_UN_INSTALL_EXTRAS"
 			fi
 		;;
@@ -253,8 +253,8 @@ _main ()
 		;;
 	esac
 
-# 	if [[ -t $stdin ]]; then
 	if $cli; then
+
 		# wait on user or timeout (if we run in konsole)
 		# shellcheck disable=SC2230
 		if type -p konsole >/dev/null; then
@@ -274,7 +274,7 @@ _main ()
 			PID_konsole="$(ps -ejH | grep -B5 "^\ *$PID_ME" | grep 'konsole' | awk '{ print $1 }')"
 
 			# wait only if we grapped the konsole nicely
-			if [[ -n $PID_konsole ]]; then
+			if [[ -n $PID_konsole ]] ; then
 
 				# just a tiny separator
 				printf '\n'
@@ -288,7 +288,7 @@ _main ()
 				# hide ()
 				qdbus "org.kde.konsole-$PID_konsole" "/konsole/MainWindow_1" "org.qtproject.Qt.QWidget.hide"
 
-				# also nice enough 'konsole' exits with 0 then)
+				# quitting is also nice enough as 'konsole' exits with 0 then
 				# shellcheck disable=SC2086
 				kill --signal SIGQUIT $PID_konsole # SIGQUIT exits pp nicely
 
@@ -296,6 +296,7 @@ _main ()
 			# noop DOES the job as well !?!?!
 			:
 		fi
+
 	fi
 }
 
