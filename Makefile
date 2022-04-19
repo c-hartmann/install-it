@@ -21,7 +21,7 @@ endif
 ifndef PACKAGE
 $(error PACKAGE is undefined)
 else
-$(info building PACKAGE=$(PACKAGE))
+$(info building PACKAGE: $(PACKAGE))
 endif
 
 # final target to build
@@ -34,6 +34,9 @@ INSTALL_SCRIPT = install.sh
 # a file list to build the install archive
 SOURCE_FILES_LIST = PACKAGE.files
 
+# install package is build from
+BUILD_WORKING_DIR = ${HOME}/.local
+
 # be quiet on building (suppress stdout)
 .SILENT: $(TARGET_PACKAGE_ARCHIVE) $(INSTALL_UPDATE_ARCHIVE) # $(INSTALL_SCRIPT)
 
@@ -42,9 +45,8 @@ SOURCE_FILES_LIST = PACKAGE.files
 # else
 # hello-world.tar.gz: install.sh install-update.tar.gz
 # $(PACKAGE).tar.gz: install.sh install-update.tar.gz
-# foobar.tar.gz: install.sh install-update.tar.gz
 $(TARGET_PACKAGE_ARCHIVE): $(INSTALL_UPDATE_ARCHIVE) $(INSTALL_SCRIPT)
-	$(info building TARGET=$(TARGET_PACKAGE_ARCHIVE))
+	$(info building PACKAGE-TARGET: $(TARGET_PACKAGE_ARCHIVE))
 	tar \
 	--create --gzip \
 	--file $@ \
@@ -60,10 +62,10 @@ $(TARGET_PACKAGE_ARCHIVE): $(INSTALL_UPDATE_ARCHIVE) $(INSTALL_SCRIPT)
 # install-update.tar.gz: PACKAGE.files
 # $(INSTALL_UPDATE_ARCHIVE): PACKAGE.files
 $(INSTALL_UPDATE_ARCHIVE): $(SOURCE_FILES_LIST)
-	$(info building TARGET=$(INSTALL_UPDATE_ARCHIVE))
+	$(info building INSTALL-TARGET: $(INSTALL_UPDATE_ARCHIVE))
 	tar \
 	--create --gzip \
-	--directory=${HOME}/.local \
+	--directory=$(BUILD_WORKING_DIR) \
 	--file $@ \
  	--files-from=$<
 # 	--file install-update.tar.gz \
