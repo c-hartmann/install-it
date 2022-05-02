@@ -127,8 +127,8 @@ _install_or_update ()
 		printf '%s\n' 'Files to install or update:'
 		tar \
 			--test \
-			--verbose \
 			--file "$MY_INSTALL_UPDATE_TAR_GZ"
+		echo
 		# shellcheck disable=SC2086
 		tar \
 			--directory="$BASE_INSTALL_DIR" \
@@ -138,6 +138,7 @@ _install_or_update ()
 		return 0
 	else
 		# install archive missing
+		printf '%s\n' "file does not exists: $MY_INSTALL_UPDATE_TAR_GZ" >&2
 		return 1
 	fi
 }
@@ -153,8 +154,8 @@ _install_or_protect ()
 		printf '%s\n' 'Files to install or protect:'
 		tar \
 			--test \
-			--verbose \
 			--file "$MY_INSTALL_PROTECT_TAR_GZ"
+		echo
 		# shellcheck disable=SC2086
 		tar \
 			--directory="$HOME" \
@@ -173,26 +174,34 @@ _install_or_protect ()
 ### remove all base files but protect user modified. remove only empty directories
 _remove ()
 {
-	printf '%s\n' "reading from: $MY_INSTALL_UPDATE_TAR_GZ"
+# set -x
+# ls -l  "$MY_INSTALL_UPDATE_TAR_GZ"
+# tar \
+# 	--list \
+# 	--file "$MY_INSTALL_UPDATE_TAR_GZ"
+s	printf '%s\n' "Try to read file list from: $MY_INSTALL_UPDATE_TAR_GZ"
 	# shellcheck disable=SC2086 disable=SC2162
 	if [[ -f "$MY_INSTALL_UPDATE_TAR_GZ" ]] ; then
-		printf '%s\n' 'files to remove:...'
-# 		tar \
-# 			--test \
-# 			--verbose \
-# 			--file "$MY_INSTALL_UPDATE_TAR_GZ"
+		echo
+		printf '%s\n' 'Files to remove:'
+		tar \
+			--list \
+			--file "$MY_INSTALL_UPDATE_TAR_GZ"
+		echo
 		while read _target ; do
 			_target="$BASE_INSTALL_DIR/${_target#./}"
 			printf 'removing: %s\n' "$_target"
 			test -f "$_target" && rm "$_target"
 			test -d "$_target" && rmdir "$_target"
 			### tac allows me to delete files before their containing directories
-		done < <(tar tf "$MY_INSTALL_UPDATE_TAR_GZ" | tac)
+		done < <(tar --list --file "$MY_INSTALL_UPDATE_TAR_GZ" | tac)
 		return 0
 	else
 		# install archive missing
+		printf '%s\n' "file does not exists: $MY_INSTALL_UPDATE_TAR_GZ" >&2
 		return 1
 	fi
+# set +x
 }
 
 _run_command ()
@@ -225,13 +234,13 @@ _main ()
 	_tf="$(mktemp)"
 
 	# give user some hints if we fail for ever reason
-	printf '%s\n' "running in: $SCRIPT_DIR"
+	printf '%s\n\n' "Running in: $SCRIPT_DIR"
 
 	# choose actions by command effective
 	case $_cmd in
 		install)
 			### files that are installed or updated
-			_install_or_update || _error_exit "oops... no installation archive found" 1
+			_install_or_update || _error_exit "oops... No installation archive found" 1
 			### files to install but NOT to update
 			_install_or_protect
 			### source extras if present
@@ -241,15 +250,16 @@ _main ()
 			fi
 		;;
 		remove)
- 			_remove || _error_exit "oops... something went wrong with deinstallation" 2
+ 			_remove || _error_exit "oops... Something went wrong with uninstallation" 2
 			### source extras if present
 			# shellcheck disable=SC1090
 			if [[ -f "$MY_UN_INSTALL_EXTRAS" ]] ; then
+				echo
 				. "$MY_UN_INSTALL_EXTRAS"
 			fi
 		;;
 		*)
-			_error_exit "oops... something went totaly wrong (unsupported command argument: $_cmd)" 3
+			_error_exit "oops... Something went totaly wrong (unsupported command argument: $_cmd)" 3
 		;;
 	esac
 
