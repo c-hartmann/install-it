@@ -10,6 +10,7 @@
 
 ### usage: install [--remove]
 
+# TODO add usage?
 
 # shellcheck disable=SC2034
 ME="install.sh"
@@ -33,9 +34,7 @@ MY_UN_INSTALL_EXTRAS="uninstall-extras.sh"
 MY_TITEL="Dolphin User Service Menu Installer"
 MY_ICON="install"
 
-
-
-### this should run within a terminal and some gui application
+s### this should run within a terminal and some gui application
 declare gui=false
 declare cli=false
 
@@ -46,7 +45,6 @@ BASE_INSTALL_DIR="$base_dir_user"
 
 ### desktop notifications will vanish after seconds
 notification_timeout=4000
-
 
 ### _init_cmd "$@"
 ### return command mode (install (default) or remove)
@@ -311,5 +309,3 @@ _main ()
 }
 
 _main "$@"
-
-# TODO add usage?
