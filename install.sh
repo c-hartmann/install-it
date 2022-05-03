@@ -124,9 +124,10 @@ _install_or_update ()
 	if [[ -f "$MY_INSTALL_UPDATE_TAR_GZ" ]] ; then
 		printf '%s\n' 'Files to install or update:'
 		tar \
-			--test \
+			--list \
 			--file "$MY_INSTALL_UPDATE_TAR_GZ"
 		echo
+		printf 'installing:\n'
 		# shellcheck disable=SC2086
 		tar \
 			--directory="$BASE_INSTALL_DIR" \
@@ -151,9 +152,10 @@ _install_or_protect ()
 	if [[ -f "$MY_INSTALL_PROTECT_TAR_GZ" ]] ; then
 		printf '%s\n' 'Files to install or protect:'
 		tar \
-			--test \
+			--list \
 			--file "$MY_INSTALL_PROTECT_TAR_GZ"
 		echo
+		printf 'installing:\n'
 		# shellcheck disable=SC2086
 		tar \
 			--directory="$HOME" \
