@@ -2,32 +2,35 @@
 
 a hopefully usefull and mostly generic installer for KDE extensions
 
-## This...
+## Requirements
 
-shall do the job if used via Dolphin Settings / Configure Dolphin and(!)
+This shall do the job if used via Dolphin Settings / Configure Dolphin and(!)
 if downloaded to some place.
 
-as this shall be able to install files around the HOME place ... the
+As this shall be able to install files around the HOME place ... the
 only valid place to build the archives simply is .. tada .. $HOME.
 
-nice side effect is ... if the user opens the downloaded archive in ark,
+Nice side effect is ... if the user opens the downloaded archive in ark,
 she will have a immediate impression of where these files will go.
 
-this makes use of a gzipped tar file containing ME and a gzipped tar archive
+This makes use of a gzipped tar file containing ME and a gzipped tar archive
 containing the files to install. so basicly this runs down to extracting
 the tar file to a proper place.
 
-to keep the creation of the distributable tar archive separated .. we might
+To keep the creation of the distributable tar archive separated .. we might
 create this inside a directory in parallel to the installation directory
-e.g.:
+e.g. (for Service Menus:
 this is the installation directory: ~/.local/share/servicemenu-download
-so i can go here: ~/.local/share/kde-store-build
-seems not to be a totally dumb idea, as it might serve solid actions and
-plasmoids as well
+so i can go here: ~/.local/share/servicemenu-build
 
-solid action go to `~/.local/share/solid/actions/`
-plasmoids go to `~/.local/share/plasma/plasmoids/`
-service menus go to `~/.local/share/kservices5/ServiceMenus/`
+## Other extensions than service menus
+
+This might serve solid actions and plasmoids as well, as these go to:
+
+```
+~/.local/share/solid/actions/
+~/.local/share/plasma/plasmoids/
+```
 
 ## Said That..
 
