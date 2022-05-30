@@ -1,4 +1,4 @@
-# install.sh
+# install-it
 
 a hopefully usefull and mostly generic installer for KDE extensions
 
